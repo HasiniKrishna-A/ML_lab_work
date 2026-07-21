@@ -1,0 +1,71 @@
+X_train = [
+    ['Y', 'High', 'no', 'fair'], 
+    ['Y', 'High', 'no', 'excellent'], 
+    ['M_A', 'High', 'no', 'fair'],
+    ['S', 'medium', 'no', 'fair'], 
+    ['S', 'low', 'yes', 'fair'], 
+    ['S', 'low', 'yes', 'excellent'],
+    ['M_A', 'low', 'yes', 'excellent'], 
+    ['Y', 'medium', 'no', 'fair'], 
+    ['Y', 'low', 'yes', 'fair'],
+    ['S', 'medium', 'yes', 'fair'], 
+    ['Y', 'medium', 'yes', 'excellent'], 
+    ['M_A', 'medium', 'no', 'excellent'],
+    ['M_A', 'high', 'yes', 'fair'], 
+    ['S', 'medium', 'no', 'excellent']
+]
+y_train = ['no', 'no', 'yes', 'yes', 'yes', 'no', 'yes', 'no', 'yes', 'yes', 'yes', 'yes', 'yes', 'no']
+test_sample = ['Y', 'low', 'yes', 'fair']
+
+total_rows = len(y_train)
+total_features = len(test_sample)
+
+print(f"Evaluating test sample: {test_sample}\n")
+
+#finding no of unique class
+unique_classes = []
+for label in y_train:
+    if label not in unique_classes:
+        unique_classes.append(label)
+
+best_class = None
+highest_score = None
+
+#no. of uniques class present
+for current_class in unique_classes:
+    class_count = 0
+    for label in y_train:
+        if label == current_class:
+            class_count = class_count + 1
+
+    class_prior = class_count / total_rows #prior prob
+    print(f"--- Processing Class: '{current_class}' (Occurrences: {class_count}/{total_rows}) ---") 
+    print(f"  P(Class='{current_class}') = {class_prior:.4f}")
+    
+    running_likelihood_product = 1.0 
+    
+    for col_idx in range(total_features):
+        feature_match_count = 0
+        test_value = test_sample[col_idx]
+        
+        for row_idx in range(total_rows):
+            if y_train[row_idx] == current_class:
+                dataset_val = X_train[row_idx][col_idx].lower()
+                query_val = test_value.lower()
+                
+                if dataset_val == query_val:
+                    feature_match_count = feature_match_count + 1
+                    
+        feature_probability = feature_match_count / class_count
+        print(f"  P(Feature_{col_idx}='{test_value}' | '{current_class}') = {feature_match_count} / {class_count} = {feature_probability:.4f}")
+        running_likelihood_product *= feature_probability
+
+    final_score = class_prior * running_likelihood_product
+    print(f"  Final Score for '{current_class}': {final_score:.6f}\n")
+    
+    
+    if highest_score is None or final_score > highest_score:
+        highest_score = final_score
+        best_class = current_class
+
+print(f"Prediction: Test sample is classified as '{best_class}'")
